@@ -4,6 +4,13 @@
 	"description": "Oracle Database node com recursos avançados para cargas pesadas e Oracle 19c+. Suporte completo para PL/SQL, bulk operations, connection pooling e Oracle Cloud Infrastructure.",
 	"keywords": [
 		"n8n-community-node-package",
+		"n8n-nodes",
+		"n8n",
+		"oracle-thin",
+		"oracle-thin-node",
+		"oracle-database",
+		"oracle-database-node",
+		"oracle-database-nodes",
 		"oracle",
 		"database",
 		"advanced",
@@ -101,8 +108,7 @@
 		]
 	},
 	"dependencies": {
-		"oracledb": "^6.9.0",
-		"pg": "^8.12.0"
+		"oracledb": "^6.9.0"
 	},
 	"devDependencies": {
 		"@eslint/js": "^9.33.0",
@@ -139,7 +145,8 @@
 		"n8n-workflow": ">=1.0.0"
 	},
 	"optionalDependencies": {
-		"@types/oracledb": "^6.9.1"
+		"@types/oracledb": "^6.9.1",
+		"pg": "^8.12.0"
 	},
 	"lint-staged": {
 		"*.{ts,js,json,md}": [
