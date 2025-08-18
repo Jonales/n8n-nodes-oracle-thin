@@ -1,6 +1,6 @@
 {
 	"name": "n8n-nodes-oracle-thin",
-	"version": "1.1.0-rc.3",
+	"version": "1.1.0-rc.4",
 	"description": "Oracle Database node com recursos avançados para cargas pesadas e Oracle 19c+. Suporte completo para PL/SQL, bulk operations, connection pooling e Oracle Cloud Infrastructure.",
 	"keywords": [
 		"n8n-community-node-package",
@@ -85,7 +85,7 @@
 		"test": "jest --passWithNoTests",
 		"test:watch": "jest --watch --passWithNoTests",
 		"test:coverage": "jest --coverage --passWithNoTests",
-    	"prepublishOnly": "npm run clean && npm run build && npm run lint && npm run test",
+		"prepublishOnly": "npm run clean && npm run build && npm run lint && npm run test",
 		"prepare": "husky",
 		"release": "semantic-release",
 		"validate": "npm run type-check && npm run lint && npm run test",
