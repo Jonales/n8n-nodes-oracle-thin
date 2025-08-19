@@ -3,25 +3,24 @@ import {
   INodeExecutionData,
   INodeType,
   INodeTypeDescription,
-  NodeConnectionType,
   NodeOperationError,
 } from 'n8n-workflow';
-import oracledb, { Connection } from 'oracledb';
 import { OracleConnectionPool } from './core/connectionPool';
+import { Connection } from 'oracledb';
+import { ChatMemoryService } from './ChatMemory.service';
 
-export class OracleChatMemory implements INodeType {
+export class ChatMemoryNode implements INodeType {
   description: INodeTypeDescription = {
-    displayName: 'Oracle Chat Memory',
-    name: 'oracleChatMemory',
-    icon: 'file:oracle.svg',
+    displayName: 'Chat Memory',
+    name: 'chatMemory',
     group: ['transform'],
     version: 1,
-    description: 'Gerenciamento de memória de chat usando Oracle Database',
+    description: 'Gerencia sessões de memória de chat em Oracle',
     defaults: {
-      name: 'Oracle Chat Memory',
+      name: 'Chat Memory',
     },
-    inputs: ['main' as NodeConnectionType],
-    outputs: ['main' as NodeConnectionType],
+    inputs: ['main'],
+    outputs: ['main'],
     credentials: [
       {
         name: 'oracleCredentials',
@@ -33,7 +32,6 @@ export class OracleChatMemory implements INodeType {
         displayName: 'Operation',
         name: 'operation',
         type: 'options',
-        default: 'addMessage',
         options: [
           { name: 'Setup Table', value: 'setup' },
           { name: 'Add Message', value: 'addMessage' },
@@ -41,31 +39,24 @@ export class OracleChatMemory implements INodeType {
           { name: 'Clear Memory', value: 'clearMemory' },
           { name: 'Get Summary', value: 'getSummary' },
         ],
-        description: 'Operação a ser executada',
+        default: 'setup',
       },
       {
         displayName: 'Session ID',
         name: 'sessionId',
         type: 'string',
         default: '',
-        description: 'ID único da sessão de chat',
         displayOptions: {
-          hide: {
-            operation: ['setup'],
+          show: {
+            operation: ['addMessage', 'getMessages', 'clearMemory', 'getSummary'],
           },
         },
       },
       {
         displayName: 'Memory Type',
         name: 'memoryType',
-        type: 'options',
-        default: 'user',
-        options: [
-          { name: 'User Message', value: 'user' },
-          { name: 'Assistant Message', value: 'assistant' },
-          { name: 'System Message', value: 'system' },
-        ],
-        description: 'Tipo da mensagem',
+        type: 'string',
+        default: 'chat',
         displayOptions: {
           show: {
             operation: ['addMessage'],
@@ -77,7 +68,6 @@ export class OracleChatMemory implements INodeType {
         name: 'tableName',
         type: 'string',
         default: 'CHAT_MEMORY',
-        description: 'Nome da tabela para armazenar as mensagens',
       },
     ],
   };
@@ -85,8 +75,8 @@ export class OracleChatMemory implements INodeType {
   async execute(this: IExecuteFunctions): Promise<INodeExecutionData[][]> {
     const credentials = await this.getCredentials('oracleCredentials');
     const operation = this.getNodeParameter('operation', 0) as string;
-    const sessionId = this.getNodeParameter('sessionId', 0) as string;
-    const memoryType = this.getNodeParameter('memoryType', 0) as string;
+    const sessionId = this.getNodeParameter('sessionId', 0, '') as string;
+    const memoryType = this.getNodeParameter('memoryType', 0, '') as string;
     const tableName = this.getNodeParameter('tableName', 0) as string;
 
     const oracleCredentials = {
@@ -96,302 +86,49 @@ export class OracleChatMemory implements INodeType {
     };
 
     let connection: Connection | undefined;
-    let returnData: INodeExecutionData[] = [];
+    let returnItems: INodeExecutionData[] = [];
+    const service = new ChatMemoryService();
 
     try {
       const pool = await OracleConnectionPool.getPool(oracleCredentials);
       connection = await pool.getConnection();
 
-      // ✅ CORREÇÃO: Criar instância da classe para acessar métodos
-      const chatMemoryInstance = new OracleChatMemory();
-
       switch (operation) {
       case 'setup':
-        returnData = await chatMemoryInstance.setupTable(connection, tableName, this);
+        returnItems = await service.setupTable(connection, tableName);
         break;
-      case 'addMessage':
-        returnData = await chatMemoryInstance.addMessage(
-          connection,
-          sessionId,
-          tableName,
-          memoryType,
-          this,
-        );
+      case 'addMessage': {
+        const rawMessage = this.getInputData()[0].json.message;
+
+        if (typeof rawMessage !== 'string') {
+          throw new NodeOperationError(this.getNode(), 'O campo "message" precisa ser uma string.');
+        }
+
+        const inputMessage = rawMessage;
+        returnItems = await service.addMessage(connection, sessionId, memoryType, tableName, inputMessage);
+
         break;
+      }
       case 'getMessages':
-        returnData = await chatMemoryInstance.getMessages(connection, sessionId, tableName, this);
+        returnItems = await service.getMessages(connection, sessionId, tableName);
         break;
       case 'clearMemory':
-        returnData = await chatMemoryInstance.clearMemory(connection, sessionId, tableName, this);
+        returnItems = await service.clearMemory(connection, sessionId, tableName);
         break;
       case 'getSummary':
-        returnData = await chatMemoryInstance.getSummary(connection, sessionId, tableName, this);
+        returnItems = await service.getSummary(connection, sessionId, tableName);
         break;
       default:
         throw new NodeOperationError(this.getNode(), `Operação "${operation}" não suportada`);
       }
     } catch (error) {
-      throw new NodeOperationError(this.getNode(), `Chat Memory Error: ${error}`);
+      throw new NodeOperationError(this.getNode(), `Chat Memory Error: ${(error as Error).message}`);
     } finally {
       if (connection) {
         await connection.close();
       }
     }
 
-    return [returnData];
-  }
-
-  private async setupTable(
-    connection: Connection,
-    tableName: string,
-    executeFunctions: IExecuteFunctions,
-  ): Promise<INodeExecutionData[]> {
-    try {
-      // Criar tabela se não existir
-      const createTableSQL = `
-        BEGIN
-          EXECUTE IMMEDIATE '
-            CREATE TABLE ${tableName} (
-              id NUMBER GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
-              session_id VARCHAR2(255) NOT NULL,
-              message_type VARCHAR2(50) NOT NULL,
-              content CLOB NOT NULL,
-              timestamp_created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-              metadata CLOB,
-              CONSTRAINT chk_message_type CHECK (message_type IN (''user'', ''assistant'', ''system''))
-            )
-          ';
-          DBMS_OUTPUT.PUT_LINE('Tabela ${tableName} criada com sucesso');
-        EXCEPTION
-          WHEN OTHERS THEN
-            IF SQLCODE = -955 THEN
-              DBMS_OUTPUT.PUT_LINE('Tabela ${tableName} já existe');
-            ELSE
-              RAISE;
-            END IF;
-        END;
-      `;
-
-      const result = await connection.execute(createTableSQL);
-
-      // Criar índices para performance
-      const createIndexSQL = `
-        BEGIN
-          EXECUTE IMMEDIATE 'CREATE INDEX idx_${tableName}_session ON ${tableName}(session_id)';
-        EXCEPTION
-          WHEN OTHERS THEN
-            IF SQLCODE != -955 THEN
-              RAISE;
-            END IF;
-        END;
-      `;
-
-      await connection.execute(createIndexSQL);
-      await connection.commit();
-
-      return executeFunctions.helpers.returnJsonArray([
-        {
-          success: true,
-          message: `Tabela ${tableName} configurada com sucesso`,
-          operation: 'setup',
-        },
-      ]);
-    } catch (error: unknown) {
-      throw new Error(
-        `Erro ao configurar tabela: ${error instanceof Error ? error.message : String(error)}`,
-      );
-    }
-  }
-
-  private async addMessage(
-    connection: Connection,
-    sessionId: string,
-    tableName: string,
-    memoryType: string,
-    executeFunctions: IExecuteFunctions,
-  ): Promise<INodeExecutionData[]> {
-    try {
-      // Obter dados da mensagem do input
-      const inputData = executeFunctions.getInputData();
-      const messageData = inputData[0]?.json;
-
-      if (!messageData) {
-        throw new Error('Nenhum dado de mensagem fornecido no input');
-      }
-
-      const content =
-				messageData.content != null
-				  ? String(messageData.content)
-				  : messageData.message != null
-				    ? String(messageData.message)
-				    : JSON.stringify(messageData);
-
-      const metadataObj =
-				messageData && typeof messageData.metadata === 'object' && messageData.metadata !== null
-				  ? messageData.metadata
-				  : {};
-
-      const metadata = JSON.stringify({
-        timestamp: new Date().toISOString(),
-        nodeId: executeFunctions.getNode().id,
-        ...metadataObj,
-      });
-
-      const insertSQL = `
-        INSERT INTO ${tableName} (session_id, message_type, content, metadata)
-        VALUES (:sessionId, :messageType, :content, :metadata)
-      `;
-
-      const result = await connection.execute(
-        insertSQL,
-        {
-          sessionId: String(sessionId),
-          messageType: String(memoryType),
-          content,
-          metadata,
-        },
-        { autoCommit: true },
-      );
-
-      return executeFunctions.helpers.returnJsonArray([
-        {
-          success: true,
-          sessionId,
-          messageType: memoryType,
-          content,
-          rowsAffected: result.rowsAffected,
-          operation: 'addMessage',
-        },
-      ]);
-    } catch (error: unknown) {
-      throw new Error(
-        `Erro ao adicionar mensagem: ${error instanceof Error ? error.message : String(error)}`,
-      );
-    }
-  }
-
-  private async getMessages(
-    connection: Connection,
-    sessionId: string,
-    tableName: string,
-    executeFunctions: IExecuteFunctions,
-  ): Promise<INodeExecutionData[]> {
-    try {
-      const selectSQL = `
-        SELECT 
-          id,
-          session_id,
-          message_type,
-          content,
-          timestamp_created,
-          metadata
-        FROM ${tableName} 
-        WHERE session_id = :sessionId 
-        ORDER BY timestamp_created ASC
-      `;
-
-      const result = await connection.execute(
-        selectSQL,
-        { sessionId },
-        {
-          outFormat: oracledb.OUT_FORMAT_OBJECT,
-        },
-      );
-
-      const messages = (result.rows as any[]).map(row => ({
-        id: row.ID,
-        sessionId: row.SESSION_ID,
-        messageType: row.MESSAGE_TYPE,
-        content: row.CONTENT,
-        timestamp: row.TIMESTAMP_CREATED,
-        metadata: row.METADATA ? JSON.parse(row.METADATA) : null,
-      }));
-
-      return executeFunctions.helpers.returnJsonArray(messages);
-    } catch (error: unknown) {
-      throw new Error(
-        `Erro ao recuperar mensagens: ${error instanceof Error ? error.message : String(error)}`,
-      );
-    }
-  }
-
-  private async clearMemory(
-    connection: Connection,
-    sessionId: string,
-    tableName: string,
-    executeFunctions: IExecuteFunctions,
-  ): Promise<INodeExecutionData[]> {
-    try {
-      const deleteSQL = `DELETE FROM ${tableName} WHERE session_id = :sessionId`;
-
-      const result = await connection.execute(
-        deleteSQL,
-        { sessionId },
-        {
-          autoCommit: true,
-        },
-      );
-
-      return executeFunctions.helpers.returnJsonArray([
-        {
-          success: true,
-          sessionId,
-          messagesDeleted: result.rowsAffected,
-          operation: 'clearMemory',
-        },
-      ]);
-    } catch (error: unknown) {
-      throw new Error(
-        `Erro ao limpar memória: ${error instanceof Error ? error.message : String(error)}`,
-      );
-    }
-  }
-
-  private async getSummary(
-    connection: Connection,
-    sessionId: string,
-    tableName: string,
-    executeFunctions: IExecuteFunctions,
-  ): Promise<INodeExecutionData[]> {
-    try {
-      const summarySQL = `
-        SELECT 
-          COUNT(*) as total_messages,
-          COUNT(CASE WHEN message_type = 'user' THEN 1 END) as user_messages,
-          COUNT(CASE WHEN message_type = 'assistant' THEN 1 END) as assistant_messages,
-          COUNT(CASE WHEN message_type = 'system' THEN 1 END) as system_messages,
-          MIN(timestamp_created) as first_message,
-          MAX(timestamp_created) as last_message
-        FROM ${tableName} 
-        WHERE session_id = :sessionId
-      `;
-
-      const result = await connection.execute(
-        summarySQL,
-        { sessionId },
-        {
-          outFormat: oracledb.OUT_FORMAT_OBJECT,
-        },
-      );
-
-      const summary = result.rows?.[0] as any;
-
-      return executeFunctions.helpers.returnJsonArray([
-        {
-          sessionId,
-          totalMessages: summary?.TOTAL_MESSAGES || 0,
-          userMessages: summary?.USER_MESSAGES || 0,
-          assistantMessages: summary?.ASSISTANT_MESSAGES || 0,
-          systemMessages: summary?.SYSTEM_MESSAGES || 0,
-          firstMessage: summary?.FIRST_MESSAGE,
-          lastMessage: summary?.LAST_MESSAGE,
-          operation: 'getSummary',
-        },
-      ]);
-    } catch (error: unknown) {
-      throw new Error(
-        `Erro ao obter resumo: ${error instanceof Error ? error.message : String(error)}`,
-      );
-    }
+    return [returnItems];
   }
 }

@@ -103,7 +103,7 @@
 		],
 		"nodes": [
 			"dist/nodes/Oracle/OracleDatabaseAdvanced.node.js",
-			"dist/nodes/Oracle/PGVectorStore.node.js",
+			"dist/nodes/Oracle/OracleVectorStore.node.js",
 			"dist/nodes/Oracle/ChatMemory.node.js"
 		]
 	},
@@ -133,7 +133,7 @@
 		"husky": "^9.1.7",
 		"jest": "^29.7.0",
 		"lint-staged": "^15.2.10",
-		"n8n-workflow": "^1.82.0",
+		"n8n-workflow": "^1.105.0",
 		"prettier": "^3.3.3",
 		"prettier-plugin-organize-imports": "^3.2.4",
 		"rimraf": "^6.0.1",
@@ -142,7 +142,7 @@
 		"typescript": "^5.7.2"
 	},
 	"peerDependencies": {
-		"n8n-workflow": ">=1.0.0"
+		"n8n-workflow": "*"
 	},
 	"optionalDependencies": {
 		"@types/oracledb": "^6.9.1"

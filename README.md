@@ -525,7 +525,7 @@ Every contribution, no matter how small, makes a difference and is greatly appre
 	"@semantic-release/github": "^10.3.5", // GitHub releases integration
 	"@semantic-release/npm": "^12.0.1", // Publishes to npm
 	"@types/node": "^22.10.1", // TypeScript types for Node.js
-	"n8n-workflow": "^1.82.0" // Types used in n8n custom nodes
+	"n8n-workflow": "^1.105.0" // Types used in n8n custom nodes
 }
 ```
 
@@ -1161,7 +1161,7 @@ Toda contribuição, por menor que seja, faz diferença e é muito apreciada! �
 	"@semantic-release/github": "^10.3.5", // GitHub releases integration
 	"@semantic-release/npm": "^12.0.1", // Publishes to npm
 	"@types/node": "^22.10.1", // TypeScript types for Node.js
-	"n8n-workflow": "^1.82.0" // Types used in n8n custom nodes
+	"n8n-workflow": "^1.105.0" // Types used in n8n custom nodes
 }
 ```
 
