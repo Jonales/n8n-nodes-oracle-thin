@@ -104,7 +104,9 @@
 		"nodes": [
 			"dist/nodes/Oracle/OracleDatabaseAdvanced.node.js",
 			"dist/nodes/Oracle/OracleVectorStore.node.js",
-			"dist/nodes/Oracle/ChatMemory.node.js"
+			"dist/nodes/Oracle/ChatMemory.node.js",
+			"dist/nodes/Oracle/ChatMemory.service.js",
+			"dist/nodes/Oracle/OracleVectorStore.service.js"
 		]
 	},
 	"dependencies": {
