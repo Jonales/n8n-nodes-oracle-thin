@@ -35,10 +35,10 @@
 
     "baseUrl": ".",
     "paths": {
-      "@shared/*": ["lib/shared/*"],
+      "@shared/*": ["src/shared/*"],
       "@lib/*": ["lib/*"],
       "@nodes/*": ["src/nodes/*"],
-      "@credentials/*": ["lib/credentials/*"]
+      "@credentials/*": ["src/credentials/*"]
     }
   },
 
