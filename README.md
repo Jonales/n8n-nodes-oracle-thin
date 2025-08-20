@@ -59,6 +59,198 @@ Advanced [Oracle Database](https://docs.oracle.com/en/database/oracle/oracle-dat
 
 ---
 
+## 🧪 Project Structure
+
+```bash
+
+n8n-nodes-oracle-thin/
+│
+├── 📂 src/                                 # Código fonte principal
+│   ├── 📂 credentials/
+│   │   └── Oracle.credentials.ts
+│   │
+│   ├── 📂 nodes/
+│   │   └── 📂 Oracle/
+│   │       ├── Oracle.node.ts              # Node principal unificado
+│   │       ├── OracleAdvanced.node.ts      # Node empresarial
+│   │       ├── OracleVectorStore.node.ts   # Vector store
+│   │       └── OracleChatMemory.node.ts    # Chat memory
+│   │
+│   └── 📂 shared/                          # Código compartilhado
+│       ├── 📂 interfaces/
+│       │   ├── database.interface.ts
+│       │   ├── connection.interface.ts
+│       │   ├── operations.interface.ts
+│       │   ├── vector.interface.ts
+│       │   └── chatmemory.interface.ts
+│       │
+│       ├── 📂 types/
+│       │   ├── oracle.credentials.type.ts
+│       │   ├── connection.type.ts
+│       │   ├── operations.type.ts
+│       │   ├── vector.type.ts
+│       │   └── chatmemory.type.ts
+│       │
+│       ├── 📂 utils/
+│       │   ├── logger.ts
+│       │   ├── metrics.ts
+│       │   ├── healthCheck.ts
+│       │   ├── validator.ts
+│       │   ├── vectorUtils.ts
+│       │   └── chatUtils.ts
+│       │
+│       └── 📂 constants/                   # Constantes globais
+│           ├── errors.constants.ts
+│           ├── database.constants.ts
+│           └── node.constants.ts
+│
+├── 📂 lib/                                 # Bibliotecas core
+│   ├── 📂 core/
+│   │   ├── 📂 connection/
+│   │   │   ├── connectionManager.ts
+│   │   │   ├── connectionPool.ts
+│   │   │   ├── connectionValidator.ts
+│   │   │   └── connectionMonitor.ts
+│   │   │
+│   │   ├── 📂 operations/
+│   │   │   ├── queryExecutor.ts
+│   │   │   ├── bulkOperations.ts
+│   │   │   ├── streamOperations.ts
+│   │   │   └── cacheOperations.ts
+│   │   │
+│   │   ├── 📂 security/
+│   │   │   ├── encryption.ts
+│   │   │   ├── authentication.ts
+│   │   │   └── sqlInjectionPrevention.ts
+│   │   │
+│   │   ├── 📂 advanced/
+│   │   │   ├── aqOperations.ts
+│   │   │   ├── plsqlExecutor.ts
+│   │   │   └── transactionManager.ts
+│   │   │
+│   │   ├── 📂 vectorstore/
+│   │   │   ├── vectorOperations.ts
+│   │   │   ├── similaritySearch.ts
+│   │   │   ├── vectorIndex.ts
+│   │   │   ├── embeddingManager.ts
+│   │   │   ├── dimensionValidator.ts
+│   │   │   └── vectorCache.ts
+│   │   │
+│   │   └── 📂 chatmemory/
+│   │       ├── memoryOperations.ts
+│   │       ├── conversationManager.ts
+│   │       ├── contextRetrieval.ts
+│   │       ├── messageProcessor.ts
+│   │       ├── memoryCompression.ts
+│   │       └── privacyManager.ts
+│   │
+│   ├── 📂 config/
+│   │   ├── database.config.ts
+│   │   ├── security.config.ts
+│   │   ├── pool.config.ts
+│   │   ├── vector.config.ts
+│   │   ├── chatmemory.config.ts
+│   │   └── environment.config.ts
+│   │
+│   └── 📂 error/
+│       ├── errorHandler.ts
+│       ├── retryPolicy.ts
+│       ├── customErrors.ts
+│       ├── vectorErrors.ts
+│       └── chatErrors.ts
+│
+├── 📂 assets/                              # Assets estáticos
+│   ├── 📂 icons/
+│   │   ├── oracle.svg
+│   │   ├── oracle-vector.svg
+│   │   └── oracle-chat.svg
+│   │
+│   └── 📂 screenshots/
+│       ├── node-configuration.png
+│       └── workflow-example.png
+│
+├── 📂 schemas/                             # Esquemas de banco
+│   ├── 📂 sql/
+│   │   ├── database_schema.sql
+│   │   ├── vector_tables.sql
+│   │   ├── chatmemory_tables.sql
+│   │   └── indexes.sql
+│   │
+│   └── 📂 migrations/
+│       ├── 001_initial_setup.sql
+│       ├── 002_vector_store.sql
+│       └── 003_chat_memory.sql
+│
+├── 📂 tests/                               # Testes
+│   ├── 📂 __mocks__/
+│   │   └── oracledb.ts
+│   │
+│   ├── 📂 fixtures/
+│   │   ├── sample-data.json
+│   │   └── test-vectors.json
+│   │
+│   ├── 📂 helpers/
+│   │   └── test-utils.ts
+│   │
+│   ├── 📂 unit/
+│   │   ├── database.test.ts
+│   │   ├── vectorstore.test.ts
+│   │   └── chatmemory.test.ts
+│   │
+│   ├── 📂 integration/
+│   │   ├── oracle-connection.test.ts
+│   │   ├── vector-operations.test.ts
+│   │   └── chat-flows.test.ts
+│   │
+│   └── 📂 e2e/
+│       ├── full-workflow.test.ts
+│       ├── vector-similarity.test.ts
+│       └── chat-conversation.test.ts
+│
+├── 📂 docs/                                # Documentação
+│   ├── 📂 api/
+│   │   ├── credentials.md
+│   │   ├── operations.md
+│   │   └── vector-store.md
+│   │
+│   ├── 📂 guides/
+│   │   ├── getting-started.md
+│   │   ├── advanced-usage.md
+│   │   └── troubleshooting.md
+│   │
+│   └── 📂 examples/
+│       ├── basic-queries.md
+│       ├── vector-search.md
+│       └── chat-workflows.md
+│
+├── 📂 examples/                            # Exemplos práticos
+│   ├── 📂 workflows/
+│   │   ├── basic-database.json
+│   │   ├── vector-search.json
+│   │   └── chat-ai-assistant.json
+│   │
+│   └── 📂 scripts/
+│       ├── setup-vector-tables.js
+│       └── setup-chat-memory.js
+│
+├── 📂 dist/                                # Build compilado
+├── 📂 node_modules/                        # Dependências
+│
+├── 📄 package.json                         # Configuração do projeto
+├── 📄 credentials.json                     # Configuração credenciais n8n
+├── 📄 tsconfig.json                        # Configuração TypeScript
+├── 📄 jest.config.js                       # Configuração Jest
+├── 📄 eslint.config.js                     # Configuração ESLint
+├── 📄 gulpfile.js                          # Tasks de build
+├── 📄 .gitignore                           # Git ignore
+├── 📄 .prettierrc                          # Prettier config
+├── 📄 LICENSE.md                           # Licença MIT
+└── 📄 README.md                            # Documentação principal
+
+```
+
+---
+
 ## 🚀 Installation
 
 ```bash
@@ -651,9 +843,201 @@ Made with ❤️ for the Oracle and n8n communities
 
 ---
 
-## 🚀 Instalação
+## 📁 Estrutura do Projeto
+
+```bash
+
+n8n-nodes-oracle-thin/
+│
+├── 📂 src/                                 # Código fonte principal
+│   ├── 📂 credentials/
+│   │   └── Oracle.credentials.ts
+│   │
+│   ├── 📂 nodes/
+│   │   └── 📂 Oracle/
+│   │       ├── Oracle.node.ts              # Node principal unificado
+│   │       ├── OracleAdvanced.node.ts      # Node empresarial
+│   │       ├── OracleVectorStore.node.ts   # Vector store
+│   │       └── OracleChatMemory.node.ts    # Chat memory
+│   │
+│   └── 📂 shared/                          # Código compartilhado
+│       ├── 📂 interfaces/
+│       │   ├── database.interface.ts
+│       │   ├── connection.interface.ts
+│       │   ├── operations.interface.ts
+│       │   ├── vector.interface.ts
+│       │   └── chatmemory.interface.ts
+│       │
+│       ├── 📂 types/
+│       │   ├── oracle.credentials.type.ts
+│       │   ├── connection.type.ts
+│       │   ├── operations.type.ts
+│       │   ├── vector.type.ts
+│       │   └── chatmemory.type.ts
+│       │
+│       ├── 📂 utils/
+│       │   ├── logger.ts
+│       │   ├── metrics.ts
+│       │   ├── healthCheck.ts
+│       │   ├── validator.ts
+│       │   ├── vectorUtils.ts
+│       │   └── chatUtils.ts
+│       │
+│       └── 📂 constants/                   # Constantes globais
+│           ├── errors.constants.ts
+│           ├── database.constants.ts
+│           └── node.constants.ts
+│
+├── 📂 lib/                                 # Bibliotecas core
+│   ├── 📂 core/
+│   │   ├── 📂 connection/
+│   │   │   ├── connectionManager.ts
+│   │   │   ├── connectionPool.ts
+│   │   │   ├── connectionValidator.ts
+│   │   │   └── connectionMonitor.ts
+│   │   │
+│   │   ├── 📂 operations/
+│   │   │   ├── queryExecutor.ts
+│   │   │   ├── bulkOperations.ts
+│   │   │   ├── streamOperations.ts
+│   │   │   └── cacheOperations.ts
+│   │   │
+│   │   ├── 📂 security/
+│   │   │   ├── encryption.ts
+│   │   │   ├── authentication.ts
+│   │   │   └── sqlInjectionPrevention.ts
+│   │   │
+│   │   ├── 📂 advanced/
+│   │   │   ├── aqOperations.ts
+│   │   │   ├── plsqlExecutor.ts
+│   │   │   └── transactionManager.ts
+│   │   │
+│   │   ├── 📂 vectorstore/
+│   │   │   ├── vectorOperations.ts
+│   │   │   ├── similaritySearch.ts
+│   │   │   ├── vectorIndex.ts
+│   │   │   ├── embeddingManager.ts
+│   │   │   ├── dimensionValidator.ts
+│   │   │   └── vectorCache.ts
+│   │   │
+│   │   └── 📂 chatmemory/
+│   │       ├── memoryOperations.ts
+│   │       ├── conversationManager.ts
+│   │       ├── contextRetrieval.ts
+│   │       ├── messageProcessor.ts
+│   │       ├── memoryCompression.ts
+│   │       └── privacyManager.ts
+│   │
+│   ├── 📂 config/
+│   │   ├── database.config.ts
+│   │   ├── security.config.ts
+│   │   ├── pool.config.ts
+│   │   ├── vector.config.ts
+│   │   ├── chatmemory.config.ts
+│   │   └── environment.config.ts
+│   │
+│   └── 📂 error/
+│       ├── errorHandler.ts
+│       ├── retryPolicy.ts
+│       ├── customErrors.ts
+│       ├── vectorErrors.ts
+│       └── chatErrors.ts
+│
+├── 📂 assets/                              # Assets estáticos
+│   ├── 📂 icons/
+│   │   ├── oracle.svg
+│   │   ├── oracle-vector.svg
+│   │   └── oracle-chat.svg
+│   │
+│   └── 📂 screenshots/
+│       ├── node-configuration.png
+│       └── workflow-example.png
+│
+├── 📂 schemas/                             # Esquemas de banco
+│   ├── 📂 sql/
+│   │   ├── database_schema.sql
+│   │   ├── vector_tables.sql
+│   │   ├── chatmemory_tables.sql
+│   │   └── indexes.sql
+│   │
+│   └── 📂 migrations/
+│       ├── 001_initial_setup.sql
+│       ├── 002_vector_store.sql
+│       └── 003_chat_memory.sql
+│
+├── 📂 tests/                               # Testes
+│   ├── 📂 __mocks__/
+│   │   └── oracledb.ts
+│   │
+│   ├── 📂 fixtures/
+│   │   ├── sample-data.json
+│   │   └── test-vectors.json
+│   │
+│   ├── 📂 helpers/
+│   │   └── test-utils.ts
+│   │
+│   ├── 📂 unit/
+│   │   ├── database.test.ts
+│   │   ├── vectorstore.test.ts
+│   │   └── chatmemory.test.ts
+│   │
+│   ├── 📂 integration/
+│   │   ├── oracle-connection.test.ts
+│   │   ├── vector-operations.test.ts
+│   │   └── chat-flows.test.ts
+│   │
+│   └── 📂 e2e/
+│       ├── full-workflow.test.ts
+│       ├── vector-similarity.test.ts
+│       └── chat-conversation.test.ts
+│
+├── 📂 docs/                                # Documentação
+│   ├── 📂 api/
+│   │   ├── credentials.md
+│   │   ├── operations.md
+│   │   └── vector-store.md
+│   │
+│   ├── 📂 guides/
+│   │   ├── getting-started.md
+│   │   ├── advanced-usage.md
+│   │   └── troubleshooting.md
+│   │
+│   └── 📂 examples/
+│       ├── basic-queries.md
+│       ├── vector-search.md
+│       └── chat-workflows.md
+│
+├── 📂 examples/                            # Exemplos práticos
+│   ├── 📂 workflows/
+│   │   ├── basic-database.json
+│   │   ├── vector-search.json
+│   │   └── chat-ai-assistant.json
+│   │
+│   └── 📂 scripts/
+│       ├── setup-vector-tables.js
+│       └── setup-chat-memory.js
+│
+├── 📂 dist/                                # Build compilado
+├── 📂 node_modules/                        # Dependências
+│
+├── 📄 package.json                         # Configuração do projeto
+├── 📄 credentials.json                     # Configuração credenciais n8n
+├── 📄 tsconfig.json                        # Configuração TypeScript
+├── 📄 jest.config.js                       # Configuração Jest
+├── 📄 eslint.config.js                     # Configuração ESLint
+├── 📄 gulpfile.js                          # Tasks de build
+├── 📄 .gitignore                           # Git ignore
+├── 📄 .prettierrc                          # Prettier config
+├── 📄 LICENSE.md                           # Licença MIT
+└── 📄 README.md                            # Documentação principal
 
 ```
+
+---
+
+## 🚀 Instalação
+
+```bash
 
 npm install n8n-nodes-oracle-thin
 
